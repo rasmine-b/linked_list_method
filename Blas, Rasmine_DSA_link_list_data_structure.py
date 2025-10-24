@@ -1,5 +1,5 @@
 class Node:
-    def __init__(self, data):
+    def __init__(self, data: str):
         self.data = data
         self.next = None
 
@@ -8,30 +8,28 @@ class LinkedList:
     def __init__(self):
         self.head = None
 
-    def insert_at_end(self, data):
-        new_node = Node(data)
-        if self.head is None:
-            self.head = new_node
+    def display(self):
+        """Print friendly step chain ending with X"""
+        current = self.head
+        if current is None:
+            print("X (No more steps!)")
             return
-        temp = self.head
-        while temp.next:
-            temp = temp.next
-        temp.next = new_node
 
-    def insert_at_beginning(self, data):
-        new_node = Node(data)
-        new_node.next = self.head
-        self.head = new_node
+        while current:
+            print(current.data, end=" -> ")
+            current = current.next
+        print("X")
 
-    def search(self, data):
-        temp = self.head
-        while temp:
-            if temp.data == data:
-                return True
-            temp = temp.next
-        return False
+    def to_pylist(self):
+        """Return Python list of node data (useful for debugging)"""
+        arr = []
+        current = self.head
+        while current:
+            arr.append(current.data)
+            current = current.next
+        return arr
 
-    # a. remove_beginning(self)
+    # a) remove_beginning(self)
     def remove_beginning(self):
         if self.head is None:
             return None
@@ -39,60 +37,102 @@ class LinkedList:
         self.head = self.head.next
         return removed_data
 
-    # b. remove_at_end(self)
+    # b) remove_at_end(self)
     def remove_at_end(self):
         if self.head is None:
             return None
         if self.head.next is None:
-            removed_data = self.head.data
+            removed = self.head.data
             self.head = None
-            return removed_data
-        temp = self.head
-        while temp.next.next:
-            temp = temp.next
-        removed_data = temp.next.data
-        temp.next = None
-        return removed_data
+            return removed
+        current = self.head
+        while current.next.next:
+            current = current.next
+        removed = current.next.data
+        current.next = None
+        return removed
 
-    # c. remove_at(self, data)
-    def remove_at(self, data):
+    # c) remove_at(self, data)
+    def remove_at(self, data: str):
         if self.head is None:
             return None
+        # If head matches
         if self.head.data == data:
-            removed_data = self.head.data
+            removed = self.head.data
             self.head = self.head.next
-            return removed_data
-        temp = self.head
-        while temp.next:
-            if temp.next.data == data:
-                removed_data = temp.next.data
-                temp.next = temp.next.next
-                return removed_data
-            temp = temp.next
-        return None
+            return removed
+        current = self.head
+        while current.next and current.next.data != data:
+            current = current.next
+        if current.next is None: 
+            return None
+        removed = current.next.data
+        current.next = current.next.next
+        return removed
 
-    def display(self):
-        temp = self.head
-        while temp:
-            print(temp.data, end=" → ")
-            temp = temp.next
-        print("None")
+    # add at end
+    def add(self, data: str):
+        node = Node(data)
+        if self.head is None:
+            self.head = node
+            return
+        current = self.head
+        while current.next:
+            current = current.next
+        current.next = node
 
 
-# Example
-sushi_preparation = LinkedList()
-sushi_preparation.insert_at_end("prepare")
-sushi_preparation.insert_at_end("roll")
-sushi_preparation.insert_at_beginning("assemble")
+def setup_sample_steps():
+    L = LinkedList()
+    L.add("A. Prepare")
+    L.add("B. Cook rice")
+    L.add("C. Place on mat")
+    L.add("D. Roll")
+    L.add("E. Eat")
+    return L
 
-print("Before removal:")
-sushi_preparation.display()
 
-print("\nRemoved at beginning:", sushi_preparation.remove_beginning())
-sushi_preparation.display()
+def normalize_step_input(inp: str):
+    """User may input 'A' or 'a' or 'A.' or 'A. Prepare' -> normalize to full step if possible."""
+    inp = inp.strip()
+    if not inp:
+        return ""
+    letter = inp.upper()
+    if len(letter) == 1 and letter in "ABCDE":
+        mapping = {
+            "A": "A. Prepare",
+            "B": "B. Cook rice",
+            "C": "C. Place on mat",
+            "D": "D. Roll",
+            "E": "E. Eat",
+        }
+        return mapping[letter]
+    return inp
 
-print("\nRemoved at end:", sushi_preparation.remove_at_end())
-sushi_preparation.display()
 
-print("\nRemoved 'prepare':", sushi_preparation.remove_at("prepare"))
-sushi_preparation.display()
+if __name__ == "__main__":
+    steps = setup_sample_steps()
+
+    print("STEP LIST")
+    steps.display()
+
+    print("\nRemoving beginning step...")
+    removed = steps.remove_beginning()
+    print("Removed:", removed)
+    steps.display()
+
+    print("\nRemoving end step...")
+    removed = steps.remove_at_end()
+    print("Removed:", removed)
+    steps.display()
+
+    print("\nRemoving specific step 'C. Place on mat'...")
+    removed = steps.remove_at("C. Place on mat")
+    print("Removed:", removed)
+    steps.display()
+
+    print("\nAdding new step 'E. Serve and enjoy'...")
+    steps.add("E. Serve and enjoy")
+    steps.display()
+
+    print("\nFinal steps list:", steps.to_pylist())
